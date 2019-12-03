@@ -1,4 +1,4 @@
-let input_file = "./day_one/input.txt"
+let input_file = "./day_01/input.txt"
 
 let fuel (mass : int) : int =
   let dividedByThree = float_of_int mass /. 3.0 in

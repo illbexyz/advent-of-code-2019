@@ -2,7 +2,7 @@ open Base
 open Stdio
 open Utils
 
-let input_filename = "day_two/input.txt"
+let input_filename = "day_02/input.txt"
 
 let parse_end tokens =
   if List.is_prefix tokens ~prefix:[ 99 ] ~equal:( = ) then Some Opcode.End
