@@ -58,7 +58,6 @@ let main =
   let open Result in
   let opt_line = List.hd @@ Utils.input_lines input_filename in
   Result.of_option opt_line ~error:"Error: Empty file" >>= fun line ->
-  
   let start_memory = String.split line ~on:',' in
   let start_memory = List.map start_memory ~f:Int.of_string in
 
@@ -67,15 +66,15 @@ let main =
   print_endline @@ Int.to_string @@ p1_memory.(0);
 
   (* Part Two *)
-  (try
-    for i = 0 to 99 do
-      for j = 0 to 99 do
-        let res_memory = exec start_memory i j in
-        if res_memory.(0) = 19690720 then (
-          print_endline @@ Int.to_string @@ ((100 * i) + j);
-          raise Break )
+  ( try
+      for i = 0 to 99 do
+        for j = 0 to 99 do
+          let res_memory = exec start_memory i j in
+          if res_memory.(0) = 19690720 then (
+            print_endline @@ Int.to_string @@ ((100 * i) + j);
+            raise Break )
+        done
       done
-    done
-  with Break -> ());
+    with Break -> () );
 
   Ok ()
