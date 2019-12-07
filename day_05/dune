@@ -1,0 +1,5 @@
+(executable
+ (name day_05)
+ (libraries base stdio utils)
+ (preprocess
+  (pps ppx_jane ppx_deriving.std)))
