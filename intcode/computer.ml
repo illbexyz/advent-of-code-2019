@@ -32,3 +32,9 @@ type computer_state = {
   ip : int;
 }
 [@@deriving show]
+
+type intcode_error = NoInput of computer_state | ParserError of string
+
+let show_intcode_error = function
+  | NoInput state -> show_computer_state state
+  | ParserError err -> err

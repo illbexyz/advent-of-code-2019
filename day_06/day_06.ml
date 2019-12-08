@@ -15,7 +15,7 @@ module Tree = struct
   let values tree = Hashtbl.keys tree
 
   let distance_between tree ancestor descendant =
-    let rec inner label count = 
+    let rec inner label count =
       match String.equal label ancestor with
       | true -> count
       | false -> inner (Hashtbl.find_exn tree label) (count + 1)
@@ -27,9 +27,11 @@ module Tree = struct
   let common_ancestor tree x y =
     let rec inner x y depth_of_x depth_of_y =
       match (String.equal x y, depth_of_x > depth_of_y) with
-      | (true, _) -> x
-      | (false, true) -> inner (Hashtbl.find_exn tree x) y (depth_of_x - 1) depth_of_y
-      | (false, false) -> inner x (Hashtbl.find_exn tree y) depth_of_x (depth_of_y - 1)
+      | true, _ -> x
+      | false, true ->
+          inner (Hashtbl.find_exn tree x) y (depth_of_x - 1) depth_of_y
+      | false, false ->
+          inner x (Hashtbl.find_exn tree y) depth_of_x (depth_of_y - 1)
     in
     let depth_of_x = depth_of tree x in
     let depth_of_y = depth_of tree y in
@@ -51,8 +53,9 @@ let main =
 
   (* Part One *)
   let labels = Tree.values tree in
-  let sum = List.map labels ~f:(Tree.depth_of tree)
-            |> List.fold ~init:0 ~f:( + ) in
+  let sum =
+    List.map labels ~f:(Tree.depth_of tree) |> List.fold ~init:0 ~f:( + )
+  in
   printf "Part one: %d\n" sum;
 
   (* Part Two *)
@@ -60,7 +63,7 @@ let main =
 
   let distance_from_santa =
     let distance_from_ancestor = Tree.distance_between tree cmn_ancestor in
-    (distance_from_ancestor "SAN" + distance_from_ancestor "YOU" - 2)
+    distance_from_ancestor "SAN" + distance_from_ancestor "YOU" - 2
   in
   printf "Part two: %d\n" distance_from_santa;
   Ok 0
