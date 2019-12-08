@@ -61,7 +61,7 @@ let exec_less_than state x y z = exec_bin_bool_op state x y z ( < )
 let exec_equals state x y z = exec_bin_bool_op state x y z ( = )
 
 let execute_opcode (state : computer_state) opcode =
-  Stdio.print_endline @@ show_cmd opcode;
+  (* Stdio.print_endline @@ show_cmd opcode; *)
   let next_state =
     match opcode with
     | Sum (x, y, z) -> exec_sum state x y z
@@ -91,7 +91,7 @@ let exec memory std_in =
   let rec eval state =
     let%bind cmd = Parser.parse state in
     let new_state = execute_opcode state cmd in
-    Stdio.print_endline @@ show_computer_state new_state;
+    (* Stdio.print_endline @@ show_computer_state new_state; *)
     match cmd with End -> Ok new_state | _ -> eval new_state
   in
   eval initial_state
