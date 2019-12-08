@@ -1,5 +1,6 @@
 (library
  (name intcode)
- (libraries base stdio utils)
+ (inline_tests)
+ (libraries base stdio utils ppx_inline_test)
  (preprocess
   (pps ppx_jane ppx_deriving.std)))
