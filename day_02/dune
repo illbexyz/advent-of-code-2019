@@ -1,3 +1,4 @@
 (executable
  (name day_02)
- (libraries base stdio utils))
+ (libraries base stdio utils intcode)
+ (preprocess (pps ppx_jane)))

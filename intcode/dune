@@ -1,0 +1,5 @@
+(library
+ (name intcode)
+ (libraries base stdio utils)
+ (preprocess
+  (pps ppx_jane ppx_deriving.std)))
