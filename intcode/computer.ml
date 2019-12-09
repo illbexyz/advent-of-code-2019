@@ -1,6 +1,6 @@
-type param = Immediate of int | Position of int [@@deriving show]
+type param = Immediate of int | Position of int | Relative of int [@@deriving show]
 
-let int_of_param = function Immediate x -> x | Position x -> x
+let int_of_param = function Immediate x -> x | Position x -> x | Relative x -> x
 
 type cmd =
   | Sum of param * param * param
@@ -11,6 +11,7 @@ type cmd =
   | JumpIfFalse of param * param
   | LessThan of param * param * param
   | Equals of param * param * param
+  | ChangeRB of param
   | End
 [@@deriving show]
 
@@ -23,6 +24,7 @@ let chars_consumed = function
   | JumpIfFalse _ -> 3
   | LessThan _ -> 4
   | Equals _ -> 4
+  | ChangeRB _ -> 2
   | End -> 1
 
 type computer_state = {
@@ -30,6 +32,7 @@ type computer_state = {
   std_in : int list;
   std_out : int list;
   ip : int;
+  rb : int;
 }
 [@@deriving show]
 

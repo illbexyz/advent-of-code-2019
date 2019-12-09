@@ -1,5 +1,4 @@
 open Base
-
 (* open Stdio *)
 open Computer
 
@@ -12,13 +11,22 @@ let read_input state =
   | None -> Error (NoInput state)
   | Some input -> Ok (input, { state with std_in = List.tl_exn state.std_in })
 
-let get_arg memory p =
-  match p with Immediate x -> x | Position x -> memory.(x)
+let get_arg state p =
+  match p with
+  | Immediate x -> x
+  | Position x -> state.memory.(x)
+  | Relative x -> state.memory.(x + state.rb)
+
+let get_out_arg state p =
+  match p with
+  | Immediate x
+  | Position x -> x
+  | Relative x -> x + state.rb
 
 let exec_bin_op state cmd x y z =
-  let p1 = get_arg state.memory x in
-  let p2 = get_arg state.memory y in
-  let p3 = int_of_param z in
+  let p1 = get_arg state x in
+  let p2 = get_arg state y in
+  let p3 = get_out_arg state z in
   state.memory.(p3) <- cmd p1 p2;
   Ok state
 
@@ -28,25 +36,24 @@ let exec_mult state x y z = exec_bin_op state ( * ) x y z
 
 let exec_input state param =
   let open Result.Let_syntax in
-  let arg = int_of_param param in
+  let arg = get_out_arg state param in
   let%map inp, state' = read_input state in
   (* printf "Input: %d\n" inp; *)
   state'.memory.(arg) <- inp;
   state'
 
 let exec_output state param =
-  let p1 = int_of_param param in
-  let out = state.memory.(p1) in
+  let out = get_arg state param in
   (* printf "Output: %d\n" out; *)
   Ok { state with std_out = out :: state.std_out }
 
 let exec_jump state x y op tokens_consumed =
-  let p1 = get_arg state.memory x in
-  let p2 = get_arg state.memory y in
+  let p1 = get_arg state x in
+  let p2 = get_arg state y in
   Ok
     ( match op p1 with
-    | true -> { state with ip = p2 }
-    | false -> { state with ip = state.ip + tokens_consumed } )
+      | true -> { state with ip = p2 }
+      | false -> { state with ip = state.ip + tokens_consumed } )
 
 let exec_jump_if_true state x y =
   exec_jump state x y (( <> ) 0) (chars_consumed (JumpIfFalse (x, y)))
@@ -55,9 +62,9 @@ let exec_jump_if_false state x y =
   exec_jump state x y (( = ) 0) (chars_consumed (JumpIfTrue (x, y)))
 
 let exec_bin_bool_op state x y z cond =
-  let p1 = get_arg state.memory x in
-  let p2 = get_arg state.memory y in
-  let p3 = int_of_param z in
+  let p1 = get_arg state x in
+  let p2 = get_arg state y in
+  let p3 = get_out_arg state z in
   let bit = match cond p1 p2 with true -> 1 | false -> 0 in
   state.memory.(p3) <- bit;
   Ok state
@@ -65,6 +72,10 @@ let exec_bin_bool_op state x y z cond =
 let exec_less_than state x y z = exec_bin_bool_op state x y z ( < )
 
 let exec_equals state x y z = exec_bin_bool_op state x y z ( = )
+
+let exec_change_rb state x =
+  let p1 = get_arg state x in
+  Ok { state with rb = (p1 + state.rb) }
 
 let execute_opcode state opcode =
   let open Result.Let_syntax in
@@ -79,6 +90,7 @@ let execute_opcode state opcode =
     | JumpIfFalse (x, y) -> exec_jump_if_false state x y
     | LessThan (x, y, z) -> exec_less_than state x y z
     | Equals (x, y, z) -> exec_equals state x y z
+    | ChangeRB x -> exec_change_rb state x
     | End -> Ok state
   in
   let next_ip =
@@ -89,7 +101,8 @@ let execute_opcode state opcode =
   Ok { next_state with ip = next_ip }
 
 let initial_state memory std_in =
-  { memory = List.to_array memory; std_in; std_out = []; ip = 0 }
+  let additional_memory = List.init 1000 ~f:(fun _ -> 0) in
+  { memory = List.to_array (List.append memory additional_memory); std_in; std_out = []; ip = 0; rb = 0 }
 
 let add_input_to_state input state =
   { state with std_in = List.rev (input :: state.std_in) }
@@ -106,9 +119,9 @@ let exec init_state =
     let result = execute_opcode state cmd in
     match result with
     | Ok new_state -> (
+        (* print_endline @@ show_computer_state new_state; *)
         match cmd with End -> Ok new_state | _ -> eval new_state )
     | Error err -> Error err
-    (* print_endline @@ show_computer_state new_state; *)
   in
 
   eval init_state
@@ -121,8 +134,8 @@ let test_intcode memory input expected_output =
   let rslt_final_state = exec (initial_state memory input) in
   match rslt_final_state with
   | Ok final_state ->
-      let actual = List.hd_exn final_state.std_out in
-      expected_output = actual
+    let actual = List.hd_exn final_state.std_out in
+    expected_output = actual
   | Error _ -> false
 
 let%test "equal position 1" =
@@ -164,3 +177,12 @@ let%test "jump immediate 1" =
 
 let%test "jump immediate 2" =
   test_intcode [ 3; 3; 1105; -1; 9; 1101; 0; 0; 12; 4; 12; 99; 1 ] [ 1 ] 1
+
+let%test "rb, additional memory" =
+  test_intcode [ 109;1;204;-1;1001;100;1;100;1008;100;16;101;1006;101;0;99 ] [] 99
+
+let%test "bigint" =
+  test_intcode [ 1102;34915192;34915192;7;4;7;99;0 ] [] 1219070632396864
+
+let%test "bigint 2" =
+  test_intcode [ 104;1125899906842624;99 ] [] 1125899906842624
