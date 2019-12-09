@@ -17,6 +17,6 @@ let main () =
 let () =
   match main () with
   | Ok final_state ->
-    print_endline @@ Intcode.show_computer_state final_state;
-    print_endline "Success"
+      print_endline @@ Intcode.show_computer_state final_state;
+      print_endline "Success"
   | Error err -> print_endline err
