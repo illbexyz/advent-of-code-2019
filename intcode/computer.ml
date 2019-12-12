@@ -1,6 +1,12 @@
-type param = Immediate of int | Position of int | Relative of int [@@deriving show]
+open Base
 
-let int_of_param = function Immediate x -> x | Position x -> x | Relative x -> x
+type param = Immediate of int | Position of int | Relative of int
+[@@deriving show]
+
+let int_of_param = function
+  | Immediate x -> x
+  | Position x -> x
+  | Relative x -> x
 
 type cmd =
   | Sum of param * param * param
@@ -34,7 +40,10 @@ type computer_state = {
   ip : int;
   rb : int;
 }
-[@@deriving show]
+[@@deriving sexp_of]
+
+let show_computer_state state =
+  Sexp.to_string_hum (sexp_of_computer_state state)
 
 type intcode_error = NoInput of computer_state | ParserError of string
 

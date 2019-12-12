@@ -3,7 +3,7 @@ open Stdio
 
 let input_filename = "day_08/input.txt"
 
-type layer = { width : int; height : int; data : string list } [@@deriving show]
+type layer = { width : int; height : int; data : string list [@opaque] }
 
 let make_layer width height data = { width; height; data }
 
@@ -20,7 +20,6 @@ let get_pixel layer i j =
   (List.nth_exn data i).[j]
 
 type image = { width : int; height : int; layers : layer list }
-[@@deriving show]
 
 let make_image width height layers = { width; height; layers }
 

@@ -21,7 +21,9 @@ let prepend_zeros_until how_many nums =
   let zeros = List.init (how_many - List.length nums) ~f:(fun _ -> 0) in
   List.append zeros nums
 
-type intlist = int list [@@deriving show]
+type intlist = int list
+
+let show_intlist l = Sexp.to_string_hum (sexp_of_list sexp_of_int l)
 
 (* interleave 1 [2;3] = [ [1;2;3]; [2;1;3]; [2;3;1] ] *)
 let rec interleave x lst =
